@@ -75,16 +75,6 @@ public class MouseMasterContext : ApplicationContext
         updateTimer.Start();
     }
 
-    private void UpdateIndicatorPosition()
-    {
-        if (indicator != null)
-        {
-            var pos = MouseSimulator.GetPosition();
-            indicator.Location = new Point(pos.X - indicator.Width / 2, pos.Y - indicator.Height / 2);
-            indicator.Invalidate(); // Force repaint (ensures visibility)
-        }
-    }
-
     private void OnKeyEvent(object? sender, KeyboardHookEventArgs e)
     {
         bool shouldHandle = false;
@@ -151,7 +141,7 @@ public class MouseMasterContext : ApplicationContext
                 {
                     if (gridOverlay.Visible)
                     {
-                        // Grid selection mode: letters A-Z (initial press) and Escape to cancel
+                        // Grid selection/refinement mode
                         if (e.VirtualKey >= (int)Keys.A && e.VirtualKey <= (int)Keys.Z && isNewPress)
                         {
                             char c = (char)e.VirtualKey;
@@ -161,7 +151,13 @@ public class MouseMasterContext : ApplicationContext
                         else if (e.VirtualKey == EscapeKey && isNewPress)
                         {
                             shouldHandle = true;
-                            uiContext.Post(_ => ToggleGrid(false), null);
+                            uiContext.Post(_ =>
+                            {
+                                if (gridOverlay != null && !gridOverlay.TryGoUp())
+                                {
+                                    ToggleGrid(false);
+                                }
+                            }, null);
                         }
                         else
                         {
@@ -197,7 +193,7 @@ public class MouseMasterContext : ApplicationContext
         indicator?.Show();
         indicator?.BringToFront();
         indicator?.Invalidate();
-        UpdateIndicatorPosition(); // Set position and invalidate again
+        UpdateIndicatorPosition(); // Set position immediately
     }
 
     private void Deactivate()
@@ -219,6 +215,7 @@ public class MouseMasterContext : ApplicationContext
     {
         if (show)
         {
+            gridOverlay?.Reset();
             gridOverlay?.Show();
             gridOverlay?.BringToFront();
         }
@@ -239,9 +236,20 @@ public class MouseMasterContext : ApplicationContext
         ToggleGrid(false);
     }
 
+    private void UpdateIndicatorPosition()
+    {
+        if (indicator != null)
+        {
+            var pos = MouseSimulator.GetPosition();
+            indicator.Location = new Point(pos.X - indicator.Width / 2, pos.Y - indicator.Height / 2);
+            indicator.Invalidate(); // Force repaint (ensures visibility)
+        }
+    }
+
     private void Update()
     {
         if (!active) return;
+        if (gridOverlay != null && gridOverlay.Visible) return;
 
         lock (pressedKeys)
         {

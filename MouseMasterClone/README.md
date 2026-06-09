@@ -4,18 +4,20 @@ A lightweight, keyboard-driven mouse control tool for Windows, inspired by [mous
 
 ## Features
 
-- **Continuous mouse movement**: Move cursor with IJKL keys
-- **Activation combo**: Left Alt + E to activate; Q or P to deactivate
+- **Continuous mouse movement**: Move cursor with Arrow Keys (Up, Down, Left, Right)
+- **Activation combo**: `Left Alt + E` to activate; `Q` to deactivate; `P` or `Ctrl+C` to quit
 - **Mouse clicks**: `;` (left), `'` (right), `RShift` (middle)
-- **Grid navigation**: Press `G` to show a labeled grid overlay, type a letter to move cursor there
+- **Grid navigation**: Press `G` to show a 4x4 grid labeled A‑P over the current area. Press a letter to zoom into that cell and show a sub‑grid. Press another letter to move the cursor to that cell (final). `Esc` goes back one level (or closes grid at root).
+- **Cursor indicator**: Red dot appears at cursor when active, disappears when deactivated.
 - **Non-intrusive overlay**: Transparent windows that don't steal focus
 - **Portable**: Single executable, no installation, no admin rights needed
 
 ## Requirements
 
 - Windows 10 or later
-- .NET 8.0 Runtime (Windows Desktop)
-  - Download from: https://dotnet.microsoft.com/download/dotnet/8.0
+- **Standalone build**: no .NET runtime required (included)
+- **Framework-dependent**: .NET 10.0 Desktop Runtime (Windows)
+  - Download from: https://dotnet.microsoft.com/download/dotnet/10.0
   - Select "ASP.NET Core Runtime" or "Desktop Runtime" for Windows x64
 
 ## Quick Start
@@ -53,15 +55,19 @@ A lightweight, keyboard-driven mouse control tool for Windows, inspired by [mous
 
 ### While Active
 
-- **Move cursor**: `I` (up), `J` (left), `K` (down), `L` (right)
+- **Move cursor**: Arrow Keys (↑ ↓ ← →)
 - **Left click**: `;`
 - **Right click**: `'` (apostrophe/quote)
 - **Middle click**: `Right Shift`
-- **Grid navigation**: Press `G` to show a 4x4 grid labeled A-P. Press a letter to move cursor to that cell; `Esc` cancels.
+- **Grid navigation**:
+  1. Press `G` to show a 4x4 grid labeled A-P over the whole screen.
+  2. Press a letter to zoom into that cell (sub‑grid appears).
+  3. Press another letter to move the cursor to that final cell and close the grid.
+  4. `Esc` goes back one level (or closes the grid if at the root level).
 
 ### Notes
 
-- The **indicator** (small "ACTIVE" label) appears at top-left when active.
+- The **indicator** (red dot) appears centered on the cursor when active.
 - Overlays are **click-through** and **non-activating**; they won't interfere with normal app usage.
 - Global keyboard hook intercepts used keys to prevent them from reaching other applications.
 

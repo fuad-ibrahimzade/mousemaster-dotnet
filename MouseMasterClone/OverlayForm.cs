@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -31,8 +32,8 @@ public class OverlayForm : Form
         StartPosition = FormStartPosition.Manual;
         // Cover primary screen
         Bounds = Screen.PrimaryScreen.Bounds;
-        BackColor = Color.Lime;
-        TransparencyKey = Color.Lime; // Makes the background fully transparent
+        BackColor = Color.Magenta;
+        TransparencyKey = Color.Magenta;
         DoubleBuffered = true;
     }
 
@@ -41,33 +42,81 @@ public class OverlayForm : Form
 
 public class GridOverlay : OverlayForm
 {
-    private List<Rectangle> cellRects = new();
-    private Dictionary<char, Rectangle> charToRect = new();
-    private Rectangle currentArea;
+    private readonly Stack<Rectangle> areaStack = new();
+    private readonly List<Rectangle> cellRects = new();
+    private readonly Dictionary<char, Rectangle> charToRect = new();
 
     public event EventHandler<char>? CellSelected;
 
     public GridOverlay()
     {
-        currentArea = Bounds;
+        Reset();
+    }
+
+    public void Reset()
+    {
+        areaStack.Clear();
+        areaStack.Push(Bounds);
+        Rebuild();
+    }
+
+    public void SelectCell(char c)
+    {
+        c = char.ToUpper(c);
+        if (!charToRect.TryGetValue(c, out Rectangle rect))
+            return;
+
+        if (areaStack.Count == 1)
+        {
+            // Refine to the selected cell (nested level)
+            areaStack.Push(rect);
+            Rebuild();
+        }
+        else
+        {
+            // Final selection: move cursor and notify context
+            CellSelected?.Invoke(this, c);
+        }
+    }
+
+    public bool TryGoUp()
+    {
+        if (areaStack.Count > 1)
+        {
+            areaStack.Pop();
+            Rebuild();
+            return true;
+        }
+        return false;
+    }
+
+    public bool TryGetCellRect(char c, out Rectangle rect)
+    {
+        return charToRect.TryGetValue(char.ToUpper(c), out rect);
+    }
+
+    private void Rebuild()
+    {
         BuildLevel();
+        Invalidate();
     }
 
     private void BuildLevel()
     {
         charToRect.Clear();
-        int cols = 4; // 4x4 grid
+        cellRects.Clear();
+        Rectangle currentArea = areaStack.Peek();
+        int cols = 4;
         int rows = 4;
         int cellWidth = currentArea.Width / cols;
         int cellHeight = currentArea.Height / rows;
-        cellRects = new List<Rectangle>();
 
         char currentChar = 'A';
         for (int r = 0; r < rows; r++)
         {
             for (int c = 0; c < cols; c++)
             {
-                Rectangle rect = new Rectangle(
+                var rect = new Rectangle(
                     currentArea.X + c * cellWidth,
                     currentArea.Y + r * cellHeight,
                     cellWidth,
@@ -86,42 +135,19 @@ public class GridOverlay : OverlayForm
     {
         base.OnPaint(e);
         var g = e.Graphics;
-        using var brush = new SolidBrush(Color.FromArgb(128, Color.Black));
-        foreach (var rect in cellRects)
+        // Draw only letters, transparent background
+        using var font = new Font("Arial", 36, FontStyle.Bold);
+        using var textBrush = new SolidBrush(Color.FromArgb(230, Color.White));
+        foreach (var kvp in charToRect)
         {
-            g.FillRectangle(brush, rect);
-            g.DrawRectangle(Pens.Yellow, rect);
-        }
-        // Draw labels
-        using var font = new Font("Arial", 24, FontStyle.Bold);
-        using var textBrush = new SolidBrush(Color.Yellow);
-        char currentChar = 'A';
-        foreach (var rect in cellRects)
-        {
-            if (currentChar > 'Z') break;
+            var rect = kvp.Value;
             var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-            g.DrawString(currentChar.ToString(), font, textBrush, rect, sf);
-            currentChar++;
+            // Draw black outline for readability
+            using var outlinePen = new Pen(Color.Black, 3);
+            g.DrawString(kvp.Key.ToString(), font, outlinePen.Brush, rect, sf);
+            g.DrawString(kvp.Key.ToString(), font, textBrush, rect, sf);
         }
     }
 
-    protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
-    {
-        // Not used; handled via global hook
-        return base.ProcessCmdKey(ref msg, keyData);
-    }
-
-    public void SelectCell(char c)
-    {
-        c = char.ToUpper(c);
-        if (charToRect.TryGetValue(c, out Rectangle rect))
-        {
-            CellSelected?.Invoke(this, c);
-        }
-    }
-
-    public bool TryGetCellRect(char c, out Rectangle rect)
-    {
-        return charToRect.TryGetValue(char.ToUpper(c), out rect);
-    }
+    protected override bool ShowWithoutActivation => true;
 }
