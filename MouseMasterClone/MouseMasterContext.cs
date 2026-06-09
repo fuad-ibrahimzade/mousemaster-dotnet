@@ -81,6 +81,7 @@ public class MouseMasterContext : ApplicationContext
         {
             var pos = MouseSimulator.GetPosition();
             indicator.Location = new Point(pos.X - indicator.Width / 2, pos.Y - indicator.Height / 2);
+            indicator.Invalidate(); // Force repaint (ensures visibility)
         }
     }
 
@@ -195,7 +196,8 @@ public class MouseMasterContext : ApplicationContext
         active = true;
         indicator?.Show();
         indicator?.BringToFront();
-        UpdateIndicatorPosition();
+        indicator?.Invalidate();
+        UpdateIndicatorPosition(); // Set position and invalidate again
     }
 
     private void Deactivate()

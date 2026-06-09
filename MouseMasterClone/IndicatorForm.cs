@@ -28,7 +28,7 @@ public class IndicatorForm : Form
         TopMost = true;
         StartPosition = FormStartPosition.Manual;
         Size = new Size(32, 32);
-        // Use magenta as transparent key
+        // Transparent background
         BackColor = Color.Magenta;
         TransparencyKey = Color.Magenta;
         DoubleBuffered = true;
@@ -38,12 +38,17 @@ public class IndicatorForm : Form
     {
         base.OnPaint(e);
         var g = e.Graphics;
-        int size = 8; // half-length from center
         int cx = Width / 2;
         int cy = Height / 2;
-        using var pen = new Pen(Color.Red, 2);
-        g.DrawLine(pen, cx - size, cy, cx + size, cy);
-        g.DrawLine(pen, cx, cy - size, cx, cy + size);
+        // Outer red circle
+        using var redBrush = new SolidBrush(Color.FromArgb(230, Color.Red));
+        g.FillEllipse(redBrush, cx - 10, cy - 10, 20, 20);
+        // White ring
+        using var whitePen = new Pen(Color.White, 2);
+        g.DrawEllipse(whitePen, cx - 10, cy - 10, 20, 20);
+        // Center dot
+        using var centerBrush = new SolidBrush(Color.White);
+        g.FillEllipse(centerBrush, cx - 2, cy - 2, 4, 4);
     }
 
     protected override bool ShowWithoutActivation => true;
