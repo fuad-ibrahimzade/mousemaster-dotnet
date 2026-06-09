@@ -56,6 +56,9 @@ A lightweight, keyboard-driven mouse control tool for Windows, inspired by [mous
 ### While Active
 
 - **Move cursor**: Arrow Keys (↑ ↓ ← →)
+  - Hold `Shift` for **2× faster** movement
+  - Hold `Ctrl` for **½× slower** movement
+  - Hold both for normal speed
 - **Left click**: `;`
 - **Right click**: `'` (apostrophe/quote)
 - **Middle click**: `Right Shift`

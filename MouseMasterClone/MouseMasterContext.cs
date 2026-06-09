@@ -31,6 +31,8 @@ public class MouseMasterContext : ApplicationContext
     private const int ClickLeftKey = 0xBA; // VK_OEM_1 (;)
     private const int ClickRightKey = 0xDE; // VK_OEM_7 (')
     private const int ClickMiddleKey = 0xA1; // RShift (VK_RSHIFT)
+    private const int VK_LSHIFT = 0xA0; // LShift for speed
+    private const int VK_RCONTROL = 0xA3; // RControl for speed
     private const int EscapeKey = 0x1B; // Escape
 
     // Combined set of keys to block when active (grid not visible)
@@ -54,8 +56,10 @@ public class MouseMasterContext : ApplicationContext
             ClickLeftKey, ClickRightKey, ClickMiddleKey,
             // Also block the keys used for activation (LAlt, E) to prevent them from reaching the app
             0xA4, 0x45,
-            // Block LControl to prevent leakage when using Ctrl+C to quit
-            0xA2
+            // Block modifiers for quit and speed
+            0xA2, // LControl
+            VK_LSHIFT,
+            VK_RCONTROL
         };
 
         indicator = new IndicatorForm();
@@ -253,11 +257,19 @@ public class MouseMasterContext : ApplicationContext
 
         lock (pressedKeys)
         {
+            // Speed modifiers: Shift = 2x, Ctrl = 0.5x
+            bool shift = pressedKeys.Contains(VK_LSHIFT) || pressedKeys.Contains(ClickMiddleKey);
+            bool ctrl = pressedKeys.Contains(QuitComboLCtrl) || pressedKeys.Contains(VK_RCONTROL);
+            double factor = 1.0;
+            if (shift) factor *= 2.0;
+            if (ctrl) factor *= 0.5;
+            double speed = MoveSpeed * factor;
+
             int dx = 0, dy = 0;
-            if (pressedKeys.Contains(MoveLeftKey)) dx -= (int)MoveSpeed;
-            if (pressedKeys.Contains(MoveRightKey)) dx += (int)MoveSpeed;
-            if (pressedKeys.Contains(MoveUpKey)) dy -= (int)MoveSpeed;
-            if (pressedKeys.Contains(MoveDownKey)) dy += (int)MoveSpeed;
+            if (pressedKeys.Contains(MoveLeftKey)) dx -= (int)speed;
+            if (pressedKeys.Contains(MoveRightKey)) dx += (int)speed;
+            if (pressedKeys.Contains(MoveUpKey)) dy -= (int)speed;
+            if (pressedKeys.Contains(MoveDownKey)) dy += (int)speed;
             if (dx != 0 || dy != 0)
                 MouseSimulator.Move(dx, dy);
 
