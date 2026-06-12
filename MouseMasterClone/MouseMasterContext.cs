@@ -219,9 +219,13 @@ public class MouseMasterContext : ApplicationContext
     {
         if (show)
         {
-            gridOverlay?.Reset();
-            gridOverlay?.Show();
-            gridOverlay?.BringToFront();
+            // Determine which screen the cursor is currently on
+            var cursorPos = MouseSimulator.GetPosition();
+            var screen = Screen.FromPoint(new Point(cursorPos.X, cursorPos.Y));
+            gridOverlay.Bounds = screen.Bounds;
+            gridOverlay.Reset();
+            gridOverlay.Show();
+            gridOverlay.BringToFront();
         }
         else
         {

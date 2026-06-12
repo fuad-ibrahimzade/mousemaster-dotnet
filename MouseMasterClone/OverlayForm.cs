@@ -30,8 +30,6 @@ public class OverlayForm : Form
         FormBorderStyle = FormBorderStyle.None;
         TopMost = true;
         StartPosition = FormStartPosition.Manual;
-        // Cover primary screen
-        Bounds = Screen.PrimaryScreen.Bounds;
         BackColor = Color.Magenta;
         TransparencyKey = Color.Magenta;
         DoubleBuffered = true;
@@ -50,7 +48,7 @@ public class GridOverlay : OverlayForm
 
     public GridOverlay()
     {
-        Reset();
+        // Do not reset here; Bounds not set yet
     }
 
     public void Reset()
@@ -135,17 +133,25 @@ public class GridOverlay : OverlayForm
     {
         base.OnPaint(e);
         var g = e.Graphics;
+        // Form's location in screen coordinates
+        Point formLocation = this.Location;
         // Draw only letters, transparent background
         using var font = new Font("Arial", 36, FontStyle.Bold);
         using var textBrush = new SolidBrush(Color.FromArgb(230, Color.White));
         foreach (var kvp in charToRect)
         {
-            var rect = kvp.Value;
+            var screenRect = kvp.Value;
+            // Convert screen coordinates to client coordinates
+            var clientRect = new Rectangle(
+                screenRect.X - formLocation.X,
+                screenRect.Y - formLocation.Y,
+                screenRect.Width,
+                screenRect.Height);
             var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
             // Draw black outline for readability
             using var outlinePen = new Pen(Color.Black, 3);
-            g.DrawString(kvp.Key.ToString(), font, outlinePen.Brush, rect, sf);
-            g.DrawString(kvp.Key.ToString(), font, textBrush, rect, sf);
+            g.DrawString(kvp.Key.ToString(), font, outlinePen.Brush, clientRect, sf);
+            g.DrawString(kvp.Key.ToString(), font, textBrush, clientRect, sf);
         }
     }
 

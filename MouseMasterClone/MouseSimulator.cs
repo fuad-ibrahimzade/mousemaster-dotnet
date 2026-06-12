@@ -97,11 +97,14 @@ public static class MouseSimulator
 
     public static void MoveAbsolute(int x, int y)
     {
-        // Use primary screen dimensions
-        int screenWidth = Screen.PrimaryScreen.Bounds.Width;
-        int screenHeight = Screen.PrimaryScreen.Bounds.Height;
-        int absX = (int)Math.Round(x * (65535.0 / (screenWidth - 1)));
-        int absY = (int)Math.Round(y * (65535.0 / (screenHeight - 1)));
+        // Use virtual screen dimensions (all monitors combined)
+        int virtualScreenLeft = SystemInformation.VirtualScreen.Left;
+        int virtualScreenTop = SystemInformation.VirtualScreen.Top;
+        int virtualScreenWidth = SystemInformation.VirtualScreen.Width;
+        int virtualScreenHeight = SystemInformation.VirtualScreen.Height;
+        // Convert to absolute coordinates (0-65535) relative to virtual screen origin
+        int absX = (int)Math.Round((x - virtualScreenLeft) * (65535.0 / (virtualScreenWidth - 1)));
+        int absY = (int)Math.Round((y - virtualScreenTop) * (65535.0 / (virtualScreenHeight - 1)));
         INPUT[] inputs = new INPUT[1];
         inputs[0].type = INPUT_MOUSE;
         inputs[0].u.mi.dx = absX;
