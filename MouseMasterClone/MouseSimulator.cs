@@ -69,6 +69,9 @@ public static class MouseSimulator
     [DllImport("user32.dll")]
     public static extern bool GetCursorPos(out POINT lpPoint);
 
+    [DllImport("user32.dll")]
+    public static extern bool SetCursorPos(int X, int Y);
+
     [StructLayout(LayoutKind.Sequential)]
     public struct POINT
     {
@@ -97,23 +100,7 @@ public static class MouseSimulator
 
     public static void MoveAbsolute(int x, int y)
     {
-        // Use virtual screen dimensions (all monitors combined)
-        int virtualScreenLeft = SystemInformation.VirtualScreen.Left;
-        int virtualScreenTop = SystemInformation.VirtualScreen.Top;
-        int virtualScreenWidth = SystemInformation.VirtualScreen.Width;
-        int virtualScreenHeight = SystemInformation.VirtualScreen.Height;
-        // Convert to absolute coordinates (0-65535) relative to virtual screen origin
-        int absX = (int)Math.Round((x - virtualScreenLeft) * (65535.0 / (virtualScreenWidth - 1)));
-        int absY = (int)Math.Round((y - virtualScreenTop) * (65535.0 / (virtualScreenHeight - 1)));
-        INPUT[] inputs = new INPUT[1];
-        inputs[0].type = INPUT_MOUSE;
-        inputs[0].u.mi.dx = absX;
-        inputs[0].u.mi.dy = absY;
-        inputs[0].u.mi.mouseData = 0;
-        inputs[0].u.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
-        inputs[0].u.mi.time = 0;
-        inputs[0].u.mi.dwExtraInfo = IntPtr.Zero;
-        SendInput(1, inputs, Marshal.SizeOf(typeof(INPUT)));
+        SetCursorPos(x, y);
     }
 
     public static void ClickLeft()

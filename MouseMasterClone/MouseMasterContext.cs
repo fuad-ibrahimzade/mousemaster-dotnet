@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -221,7 +222,7 @@ public class MouseMasterContext : ApplicationContext
         {
             // Determine which screen the cursor is currently on
             var cursorPos = MouseSimulator.GetPosition();
-            var screen = Screen.FromPoint(new Point(cursorPos.X, cursorPos.Y));
+            var screen = Screen.FromPoint(new System.Drawing.Point(cursorPos.X, cursorPos.Y));
             gridOverlay.Bounds = screen.Bounds;
             gridOverlay.Reset();
             gridOverlay.Show();
