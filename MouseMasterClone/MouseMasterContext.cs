@@ -97,7 +97,7 @@ public class MouseMasterContext : ApplicationContext
                 if (!exiting)
                 {
                     bool quit = false;
-                    if (isNewPress && e.VirtualKey == QuitKeyP && !(active && !allowQuit))
+                    if (isNewPress && e.VirtualKey == QuitKeyP && allowQuit)
                         quit = true;
                     else if (pressedKeys.Contains(QuitComboLCtrl) && pressedKeys.Contains(QuitComboC))
                         quit = true;
@@ -121,7 +121,7 @@ public class MouseMasterContext : ApplicationContext
                     if (activationKeys.SetEquals(pressedKeys))
                     {
                         shouldHandle = true;
-                        allowQuit = true;
+                        allowQuit = false;
                         uiContext.Post(_ =>
                         {
                             if (!active)
@@ -131,7 +131,7 @@ public class MouseMasterContext : ApplicationContext
                     else if (safeActivationKeys.SetEquals(pressedKeys))
                     {
                         shouldHandle = true;
-                        allowQuit = false;
+                        allowQuit = true;
                         uiContext.Post(_ =>
                         {
                             if (!active)
@@ -221,7 +221,6 @@ public class MouseMasterContext : ApplicationContext
     {
         if (!active) return;
         active = false;
-        allowQuit = true;
         indicator?.Hide();
         if (gridOverlay?.Visible == true)
             ToggleGrid(false);
