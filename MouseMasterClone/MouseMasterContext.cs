@@ -11,6 +11,7 @@ public class MouseMasterContext : ApplicationContext
     private GlobalKeyboardHook hook;
     private readonly HashSet<int> pressedKeys = new();
     private bool active = false;
+    private bool allowQuit = true;
     private IndicatorForm? indicator;
     private GridOverlay? gridOverlay;
     private readonly System.Windows.Forms.Timer updateTimer;
@@ -20,6 +21,7 @@ public class MouseMasterContext : ApplicationContext
 
     // Virtual key codes (hex)
     private readonly HashSet<int> activationKeys = new() { 0xA4, 0x45 }; // LAlt + E
+    private readonly HashSet<int> safeActivationKeys = new() { 0xA4, 0xA0, 0x45 }; // Alt + Shift + E
     private const int DeactivationQ = 0x51; // Q
     private const int QuitKeyP = 0x50; // P
     private const int QuitComboLCtrl = 0xA2; // Left Control for Ctrl+C combo
@@ -95,7 +97,7 @@ public class MouseMasterContext : ApplicationContext
                 if (!exiting)
                 {
                     bool quit = false;
-                    if (isNewPress && e.VirtualKey == QuitKeyP)
+                    if (isNewPress && e.VirtualKey == QuitKeyP && !(active && !allowQuit))
                         quit = true;
                     else if (pressedKeys.Contains(QuitComboLCtrl) && pressedKeys.Contains(QuitComboC))
                         quit = true;
@@ -113,15 +115,29 @@ public class MouseMasterContext : ApplicationContext
                     }
                 }
 
-                // Activation: LAlt + E
-                if (!active && activationKeys.SetEquals(pressedKeys))
+                // Activation: LAlt + E (with quit) or Ctrl+Shift+E (safe, no quit)
+                if (!active)
                 {
-                    shouldHandle = true;
-                    uiContext.Post(_ =>
+                    if (activationKeys.SetEquals(pressedKeys))
                     {
-                        if (!active)
-                            Activate();
-                    }, null);
+                        shouldHandle = true;
+                        allowQuit = true;
+                        uiContext.Post(_ =>
+                        {
+                            if (!active)
+                                Activate();
+                        }, null);
+                    }
+                    else if (safeActivationKeys.SetEquals(pressedKeys))
+                    {
+                        shouldHandle = true;
+                        allowQuit = false;
+                        uiContext.Post(_ =>
+                        {
+                            if (!active)
+                                Activate();
+                        }, null);
+                    }
                 }
 
                 // Deactivation: Q (on initial press)
@@ -205,6 +221,7 @@ public class MouseMasterContext : ApplicationContext
     {
         if (!active) return;
         active = false;
+        allowQuit = true;
         indicator?.Hide();
         if (gridOverlay?.Visible == true)
             ToggleGrid(false);

@@ -18,7 +18,7 @@ static class Program
             {
                 Icon = SystemIcons.Application,
                 Visible = true,
-                Text = "MouseMasterClone - Running (P or Ctrl+C to quit)"
+                Text = "MouseMasterClone - Running (LAlt+E / LAlt+Shift+E to activate)"
             };
             var ctx = new ContextMenuStrip();
             ctx.Items.Add("Exit", null, (s, e) => Application.Exit());
